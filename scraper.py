@@ -17,7 +17,7 @@ def tests():
     if not requests.head(URL_PAGE).status_code:
         raise NotImplementedError('incorrect url.')
     if not os.path.isdir(CSV_PATH):
-        NotADirectoryError('directory for csv file in not exist')
+        raise NotADirectoryError('directory for csv file in not exist')
 
 
 def write_to_csv_file(csv_path, data_rows):

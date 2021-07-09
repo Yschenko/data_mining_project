@@ -1,4 +1,5 @@
 import csv
+import json
 from bs4 import BeautifulSoup
 import lxml
 import requests
@@ -103,7 +104,7 @@ class Scraper:
         # make a list from all data
         row_to_csv = [name, positive_feedback, member_since, location, items_for_sell]
         # write the data into the csv file
-        with open(self._csv_path['sellers_csv'], 'a', encoding="utf-8") as csv_file:
+        with open(self._csv_path['SELLERS_CSV'], 'a', encoding="utf-8") as csv_file:
             csv_writer = csv.writer(csv_file)
             csv_writer.writerow(row_to_csv)
         return row_to_csv[0]  # return to 'write_to_csv_guitar'
@@ -137,7 +138,7 @@ class Scraper:
             elif not self.args.store_data_seller or not self.args.store_no_data_seller:  # store without sellers data
                 row_to_csv = [id, title, price, brand, string_configuration, model_year]
 
-            with open(self._csv_path['goitars_csv'], 'a', encoding="utf-8") as csv_file:
+            with open(self._csv_path['GUITARS_CSV'], 'a', encoding="utf-8") as csv_file:
                 csv_writer = csv.writer(csv_file)
                 csv_writer.writerow(row_to_csv)
 
@@ -171,9 +172,10 @@ def main(arg):
     download the page of URL_PAGE, get the relevant data from the page, and write the data into csv file
     """
     args = get_args(arg[1:])
+    consts = json.load(open('config.json', 'r'))
 
     # create Scraper
-    scrap = Scraper(CONFIG_DICT, args)
+    scrap = Scraper(consts, args)
     # test if all given parameters are correct and available
     try:
         scrap.checks()

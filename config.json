@@ -1,0 +1,26 @@
+{
+  "URL_PAGE": "https://il.ebay.com/b/Electric-Guitars/33034/bn_2312182",
+  "NUM_PAGES": 30,
+  "CSV_PATH": {
+    "GUITARS_CSV": "ebay_guitars_scrape.csv",
+    "SELLERS_CSV": "ebay_sellers_guitars_scrape.csv"
+  },
+  "COLUMNS_DICT": {
+    "GUITARS": {
+      "ID": "u-flL iti-act-num itm-num-txt",
+      "TITLE": "it-ttl",
+      "PRICE": "mainPrice",
+      "BRAND": "",
+      "STRING_CONGIGURATION": "",
+      "MODEL_YEAR": "",
+      "SELLER": ""
+    },
+    "SELLERS": {
+      "NAME": "",
+      "POSITIVE_FEEDBACK": "",
+      "MEMBER_SINCE": "",
+      "LOCATION": "",
+      "ITEMS_FOR_SELL": ""
+    }
+  }
+}

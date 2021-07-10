@@ -19,21 +19,13 @@ The built-in packages csv and os are also in use, mike sure you have them.
  
 ## usage - general
  
-	import csv
-	from bs4 import BeautifulSoup
-	import requests
-	import os
+All information needed to run this project appears in 'config.json' file, attached to the project.
 
-	URL_PAGE = 'https://il.ebay.com/b/Electric-Guitars/33034/bn_2312182'
-	CSV_PATH = 'ebay_guitars_scrape.csv'
-	COLUMNS_DICT = {'image': 's-item__image-img', 'title': 's-item__title', 'price': 's-item__price'}
-
-
-Their are 3 constants to insert in order to scrape specific web page.
-The first is URL_PAGE, it is a string contains the URL address of the page the user wants to scrape.
-The second in CSV_PATH, it is the path of the csv file that will contain all data that will be scraped from URL_PAGE.
-Last one is COLUMNS_DICT, it is a dictionary which in its keys their are the names (strings) of the titles of the columns of the csv file,
-and the values are strings, contains specific words with the relevant data to search and scrape from the page's HTML code 
+the config file includes the following information:
+ - url to start scraping from it.
+ - number of pages to scrap.
+ - dictionary: "CSV_PATH" with 3 paths to 3 csv file that the program will write to them.
+ - dictionary: "COLUMNS_DICT" contains 3 inner dictionaries with the columns names of the 3 csv files mentioned above.
 
 ## usage - command line
 

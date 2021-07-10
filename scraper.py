@@ -1,25 +1,15 @@
 import csv
 import json
 from bs4 import BeautifulSoup
-import lxml
+
 import requests
-import os
+
 from sys import argv
 import argparse
 
 # This code scrape internet page, search for relevant data and write tha data to a scv file.
 # There is option to print the data to the screen instead write it to csv file.
 
-CONFIG_DICT = {'URL_PAGE': 'https://il.ebay.com/b/Electric-Guitars/33034/bn_2312182',
-               'NUM_PAGES': 30,
-               'CSV_PATH': {'goitars_csv': 'ebay_guitars_scrape.csv', 'sellers_csv': 'ebay_sellers_guitars_scrape.csv'},
-               'COLUMNS_DICT': {'guitars': {'id': 'u-flL iti-act-num itm-num-txt', 'title': 'it-ttl',
-                                            'price': 'mainPrice','brand': '', 'string_configuration': '',
-                                            'model_year': '', 'seller': ''},
-                                'sellers': {'name': '', 'positive_feedback': '', 'member_since': '', 'location': '',
-                                            'items_for_sell': ''}
-                                }
-               }
 
 class Scraper:
     """
@@ -109,6 +99,29 @@ class Scraper:
             csv_writer.writerow(row_to_csv)
         return row_to_csv[0]  # return to 'write_to_csv_guitar'
 
+    def write_to_shipping_csv(self, soup):
+        """
+        get prepared soup from 'write_to_csv_guitar' and print the data of shipping to shipping csv file.
+        :param soup: prepared soup to scan
+        """
+        if (soup.find('div', class_="u-flL sh-col") and
+                soup.find('div', class_="u-flL sh-col").find('span', id="convetedPriceId")):
+            coast = soup.find('div', class_="u-flL sh-col").find('span', id="convetedPriceId").text.strip('ILS ')
+        else:
+            coast = None
+        item_location = soup.find('span', itemprop="availableAtOrFrom").text if\
+            soup.find('span', itemprop="availableAtOrFrom") else None
+        shipping_to = soup.find('span', itemprop="areaServed").text if\
+            soup.find('span', itemprop="areaServed") else None
+        shipping_to = shipping_to[:shipping_to.find("|")].strip() if shipping_to else None
+        delivery = soup.find('span', "vi-acc-del-range").b.text if soup.find('span', "vi-acc-del-range") else None
+
+        row_to_csv = [coast, item_location, shipping_to, delivery]
+
+        with open(self._csv_path['SHIPPING_CSV'], 'a', encoding="utf-8") as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(row_to_csv)
+
     def write_to_csv_guitar(self, urls):
         """
         gets urls of guitars. write the data into the csv file.
@@ -141,6 +154,8 @@ class Scraper:
             with open(self._csv_path['GUITARS_CSV'], 'a', encoding="utf-8") as csv_file:
                 csv_writer = csv.writer(csv_file)
                 csv_writer.writerow(row_to_csv)
+
+            self.write_to_shipping_csv(soup)  # write shipping data to another csv file
 
     def checks(self):
         """

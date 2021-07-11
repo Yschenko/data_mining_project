@@ -1,13 +1,12 @@
 import csv
 import json
 from bs4 import BeautifulSoup
-
 import requests
-
 from sys import argv
 import argparse
-
 import sql_writer
+
+consts = json.load(open('config.json', 'r'))
 
 # This code scrape internet page, search for relevant data and write tha data to a scv file.
 # There is option to print the data to the screen instead write it to csv file.
@@ -15,9 +14,9 @@ import sql_writer
 
 class Scraper:
     """
-    this class scrap tada of electric guitars from ebay. it collects data of the guitar it self and of the seller.
+    this class scrap data of electric guitars from ebay. it collects data of the guitar it self and of the seller.
     there are 3 important methods in this class. first 'get_urls' that finds the urls of the pagers to scrap.
-    the second is 'write_to_csv_guitar' that collects the data of each guitar, and erite it to csv file.
+    the second is 'write_to_csv_guitar' that collects the data of each guitar, and write it to csv file.
     'write_to_csv_guitar' also call 'write_to_csv_sellers' to find the seller name.
     'write_to_csv_sellers' is the third method that collects data of the seller of each guitar.
     it returns to 'write_to_csv_guitar' the name of the seller.
@@ -34,7 +33,7 @@ class Scraper:
 
     def create_csv_files(self):
         """
-        create the csv file to write the data into them.
+        create the csv file to write the data into them. Add the first line of each file.
         """
         for name, l in zip(self._csv_path.keys(), self._columns_dict.keys()):
             with open(self._csv_path[name], 'w', encoding="utf-8") as csv_file:
@@ -53,7 +52,7 @@ class Scraper:
 
     def find_details(self, details, string):
         """
-        find data from the detailed page of guitar. as string (text) of data
+        find data from the detailed page of guitar. the data appears as string (text), so strings methods are in use.
         :param details: the string to scan
         :param string: the data to find
         :return: the data if exists, or None
@@ -76,13 +75,14 @@ class Scraper:
             # collect the data from the page
             data_for_url = (soup.find_all('div', class_='s-item__wrapper clearfix'))
             # call 'write_to_csv_guitar'
-            self.write_to_csv_guitar(data_for_url[::2]) # any 'div' of find_all in the last line appears twice, so I take only 1.
+            self.write_to_csv_guitar(data_for_url)
 
     def write_to_sellers_csv(self, url):
         """
-        get url from 'write_to_csv_guitar' and collect the data of the seller. return the seller's name to 'write_to_csv_guitar'
+        get url from 'write_to_csv_guitar' and collect the data of the seller. return the seller's data as list to
+        'write_to_csv_guitar'
         :param url: url of the seller page
-        :return: seller's name
+        :return: seller's details as list
         """
         soup = self.make_soup(url)
         # the data to collect:
@@ -99,7 +99,7 @@ class Scraper:
 
     def write_to_shipping_csv(self, soup):
         """
-        get prepared soup from 'write_to_csv_guitar' and print the data of shipping to shipping csv file.
+        get prepared soup from 'write_to_csv_guitar' and return list of shipping details.
         :param soup: prepared soup to scan
         """
         if (soup.find('div', class_="u-flL sh-col") and
@@ -122,9 +122,10 @@ class Scraper:
         """
         gets urls of guitars. write the data into the csv file.
         """
-        # writing the data into the file
+        # list to contain the data of shippings and sellers to avoid duplications.
         shipping_details = []
         sellers = []
+        # collect data for guitars
         for row in urls:
             soup = self.make_soup(row.a.get('href'))
             # the data to collect
@@ -137,18 +138,22 @@ class Scraper:
             price = soup.find('span', id="convbinPrice")
             if price:
                 price = price.text.lstrip('ILS ').rstrip('(including shipping)')
-            # find data from text od details.
+            # find data from text of details.
             details = soup.find('div', class_='section').text.replace('\n', '').replace('\t', '')
             brand = self.find_details(details, 'Brand')
             string_configuration = self.find_details(details, 'String Configuration')
             model_year = self.find_details(details, 'Model Year')
-            shipping = self.write_to_shipping_csv(soup)  # write shipping data to another csv file
-            if shipping not in shipping_details:
+
+            # data of shipping to its own file
+            shipping = self.write_to_shipping_csv(soup)
+            if shipping not in shipping_details:  # check if the row already exists
                 with open(self._csv_path['SHIPPING_CSV'], 'a', encoding="utf-8") as csv_file:
                     csv_writer = csv.writer(csv_file)
                     csv_writer.writerow(shipping)
                 shipping_details.append(shipping)
             shipping_num = shipping_details.index(shipping) + 1
+
+            # sellers file
             if self.args.store_data_seller and soup.find('div', class_='mbg vi-VR-margBtm3'):  # case of store sellers data
                 seller_page = soup.find('div', class_='mbg vi-VR-margBtm3').a.get('href')
                 seller = self.write_to_sellers_csv(seller_page)
@@ -158,6 +163,8 @@ class Scraper:
                         csv_writer.writerow(seller)
                     sellers.append(seller)
                 seller_num = sellers.index(seller) + 1
+
+            # guitars file
                 row_to_csv = [id, title, price, brand, string_configuration, model_year, shipping_num, seller_num]
             elif not self.args.store_data_seller or not self.args.store_no_data_seller:  # store without sellers data
                 row_to_csv = [id, title, price, brand, string_configuration, model_year]
@@ -193,10 +200,10 @@ def get_args(args):
 
 def main(arg):
     """
-    download the page of URL_PAGE, get the relevant data from the page, and write the data into csv file
+    download the page of URL_PAGE, get the relevant data from the page, and write the data into csv file.
+    then, write from the csv files to sql database.
     """
     args = get_args(arg[1:])
-    consts = json.load(open('config.json', 'r'))
 
     # create Scraper
     scrap = Scraper(consts, args)
@@ -210,7 +217,8 @@ def main(arg):
     # if constants all parameters are correct.
     else:
         scrap.create_csv_files()
-        scrap.get_urls()
+        scrap.get_urls()  # write to the csv files
+        #  write the sql database
         db = sql_writer.SqlWrite(consts)
         db.create_database()
         db.enter_to_database()

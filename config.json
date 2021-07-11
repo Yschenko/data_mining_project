@@ -30,5 +30,9 @@
 		"SHIPPING_TO": "",
 		"DELIVERY": ""
 	}
+  },
+  "SQL_USER": {
+	  "USER_NAME": "root",
+	  "PASSWORD": "Ysch[5752]"
   }
 }

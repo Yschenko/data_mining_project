@@ -30,6 +30,7 @@ the config file includes the following information:
  - number of pages to scrap.
  - dictionary: "CSV_PATH" with 3 paths to 3 csv file that the program will write to them.
  - dictionary: "COLUMNS_DICT" contains 3 inner dictionaries with the columns names of the 3 csv files mentioned above.
+ - user information for mysql, including 'username' and 'pwd' **change them to your own before use**.
 
 ## usage - command line
 

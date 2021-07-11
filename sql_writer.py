@@ -1,6 +1,8 @@
 import pandas as pd
 import pymysql.cursors
-import numpy as np
+import json
+
+consts = json.load(open('config.json', 'r'))
 
 
 class SqlWrite:
@@ -21,8 +23,8 @@ class SqlWrite:
         :return: the connection to mysql.
         """
         connection = pymysql.connect(host='localhost',
-                                     user='root',
-                                     password='Ysch[5752]',
+                                     user=consts['SQL_USER']['USER_NAME'],
+                                     password=consts['SQL_USER']['PASSWORD'],
                                      cursorclass=pymysql.cursors.DictCursor)
         return connection
 
@@ -145,13 +147,3 @@ class SqlWrite:
                 (ebay_id, title, price, brand, string_configuration, model_year, shipping, seller)
                 VALUES """ + str(tuple(row)) + ";")
             connection.commit()
-
-
-
-
-# def main():
-#     consts = json.load(open('config.json', 'r'))
-#
-#
-# if __name__ == '__main__':
-#     main()

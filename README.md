@@ -67,7 +67,7 @@ description of sellers:
 - location TEXT: sellere's location.
 - items_for_sell INT: number of items that in the seller's shop.
 
-![[alt text](https://github.com/Yschenko/data_mining_project/blob/main/ERD_database_dm_project.png)
+![Data Base Diagram](https://github.com/Yschenko/data_mining_project/blob/main/ERD_database_dm_project.png)
 
 
 ## credits

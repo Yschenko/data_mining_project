@@ -7,6 +7,8 @@ import requests
 from sys import argv
 import argparse
 
+import sql_writer
+
 # This code scrape internet page, search for relevant data and write tha data to a scv file.
 # There is option to print the data to the screen instead write it to csv file.
 
@@ -38,7 +40,6 @@ class Scraper:
             with open(self._csv_path[name], 'w', encoding="utf-8") as csv_file:
                 csv_writer = csv.writer(csv_file)
                 # create the columns titles
-                print(self._columns_dict[l].keys())
                 csv_writer.writerow([column for column in self._columns_dict[l].keys()])
 
     def make_soup(self, url):
@@ -93,11 +94,8 @@ class Scraper:
         items_for_sell = items_for_sell[items_for_sell.find('(')+1:items_for_sell.find(')')]
         # make a list from all data
         row_to_csv = [name, positive_feedback, member_since, location, items_for_sell]
-        # write the data into the csv file
-        with open(self._csv_path['SELLERS_CSV'], 'a', encoding="utf-8") as csv_file:
-            csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(row_to_csv)
-        return row_to_csv[0]  # return to 'write_to_csv_guitar'
+
+        return row_to_csv  # return to 'write_to_csv_guitar'
 
     def write_to_shipping_csv(self, soup):
         """
@@ -118,15 +116,15 @@ class Scraper:
 
         row_to_csv = [coast, item_location, shipping_to, delivery]
 
-        with open(self._csv_path['SHIPPING_CSV'], 'a', encoding="utf-8") as csv_file:
-            csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(row_to_csv)
+        return row_to_csv
 
     def write_to_csv_guitar(self, urls):
         """
         gets urls of guitars. write the data into the csv file.
         """
         # writing the data into the file
+        shipping_details = []
+        sellers = []
         for row in urls:
             soup = self.make_soup(row.a.get('href'))
             # the data to collect
@@ -144,18 +142,29 @@ class Scraper:
             brand = self.find_details(details, 'Brand')
             string_configuration = self.find_details(details, 'String Configuration')
             model_year = self.find_details(details, 'Model Year')
+            shipping = self.write_to_shipping_csv(soup)  # write shipping data to another csv file
+            if shipping not in shipping_details:
+                with open(self._csv_path['SHIPPING_CSV'], 'a', encoding="utf-8") as csv_file:
+                    csv_writer = csv.writer(csv_file)
+                    csv_writer.writerow(shipping)
+                shipping_details.append(shipping)
+            shipping_num = shipping_details.index(shipping) + 1
             if self.args.store_data_seller and soup.find('div', class_='mbg vi-VR-margBtm3'):  # case of store sellers data
                 seller_page = soup.find('div', class_='mbg vi-VR-margBtm3').a.get('href')
                 seller = self.write_to_sellers_csv(seller_page)
-                row_to_csv = [id, title, price, brand, string_configuration, model_year, seller]
+                if seller not in sellers:
+                    with open(self._csv_path['SELLERS_CSV'], 'a', encoding="utf-8") as csv_file:
+                        csv_writer = csv.writer(csv_file)
+                        csv_writer.writerow(seller)
+                    sellers.append(seller)
+                seller_num = sellers.index(seller) + 1
+                row_to_csv = [id, title, price, brand, string_configuration, model_year, shipping_num, seller_num]
             elif not self.args.store_data_seller or not self.args.store_no_data_seller:  # store without sellers data
                 row_to_csv = [id, title, price, brand, string_configuration, model_year]
 
             with open(self._csv_path['GUITARS_CSV'], 'a', encoding="utf-8") as csv_file:
                 csv_writer = csv.writer(csv_file)
                 csv_writer.writerow(row_to_csv)
-
-            self.write_to_shipping_csv(soup)  # write shipping data to another csv file
 
     def checks(self):
         """
@@ -200,7 +209,11 @@ def main(arg):
         print('directory for csv file in not exist')
     # if constants all parameters are correct.
     else:
+        scrap.create_csv_files()
         scrap.get_urls()
+        db = sql_writer.SqlWrite(consts)
+        db.create_database()
+        db.enter_to_database()
 
 
 if __name__ == '__main__':

@@ -8,13 +8,14 @@
   },
   "COLUMNS_DICT": {
     "GUITARS": {
-      "ID": "u-flL iti-act-num itm-num-txt",
-      "TITLE": "it-ttl",
-      "PRICE": "mainPrice",
+      "ID": "",
+      "TITLE": "",
+      "PRICE": "",
       "BRAND": "",
       "STRING_CONGIGURATION": "",
       "MODEL_YEAR": "",
-      "SELLER": ""
+	  "SHIPPING_NUM": "",
+      "SELLER_NUM": ""
     },
     "SELLERS": {
       "NAME": "",

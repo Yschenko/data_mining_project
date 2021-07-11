@@ -3,19 +3,23 @@
 
 scraper is a python code to scrape web page, and write the data to csv file.
 
-In this time we scrape page from Ebay, with electric guitars to bay. for each guitar we collects its name, price and picture.
+In this time we scrape page from Ebay, with electric guitars to bay.
+
+The data that we collected this the scraper stored in MySQL database. sql_writer.py is the code that store the data in the DB. 
 
 ## Installations
 
 All needed installations are showed in requirements.txt file that added to this project.
 
 The main package to install is bs4
-Also install reuests to download the page from the Internet.
+Also install requests to download the page from the Internet.
 
 The built-in packages csv and os are also in use, mike sure you have them.
 
   pip install bs4
   pip install requests
+  
+for store the data in sql database the followed libs are needed: pandas, pymysql.cursors
  
 ## usage - general
  
@@ -72,5 +76,5 @@ description of sellers:
 
 ## credits
 
-Dor Hirts
+Dor Hirts,
 Yehuda Shvut

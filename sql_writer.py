@@ -34,11 +34,19 @@ class SqlWrite:
         """
         connection = self.connect()
         with connection.cursor() as cursor:
-            cursor.execute('''CREATE DATABASE guitars;''')
+            cursor.execute('''CREATE DATABASE IF NOT EXISTS guitars;''')
 
             cursor.execute('USE guitars;')
 
-            cursor.execute('''CREATE TABLE sellers (
+    def create_sellers_table(self):
+        """
+
+        :return:
+        """
+        connection = self.connect()
+        with connection.cursor() as cursor:
+            cursor.execute('USE guitars;')
+            cursor.execute('''CREATE TABLE IF NOT EXISTS sellers (
                               seller_id INT AUTO_INCREMENT PRIMARY KEY,
                               name TEXT,
                               positive_feedback FLOAT,
@@ -47,7 +55,16 @@ class SqlWrite:
                               items_for_sell INT
                               );''')
 
-            cursor.execute('''CREATE TABLE shipping (
+    def create_shipping_table(self):
+        """
+
+        :param self:
+        :return:
+        """
+        connection = self.connect()
+        with connection.cursor() as cursor:
+            cursor.execute('USE guitars;')
+            cursor.execute('''CREATE TABLE IF NOT EXISTS shipping (
                                           shipping_id INT AUTO_INCREMENT PRIMARY KEY,
                                           coast FLOAT,
                                           item_location TEXT,
@@ -55,7 +72,16 @@ class SqlWrite:
                                           delivery TEXT
                                           );''')
 
-            cursor.execute('''CREATE TABLE guitars (guitar_id INT AUTO_INCREMENT PRIMARY KEY,
+    def create_guitars_table(self):
+        """
+
+        :param self:
+        :return:
+        """
+        connection = self.connect()
+        with connection.cursor() as cursor:
+            cursor.execute('USE guitars;')
+            cursor.execute('''CREATE TABLE IF NOT EXISTS guitars (guitar_id INT AUTO_INCREMENT PRIMARY KEY,
                                                     ebay_id CHAR(20),
                                                     title TEXT,
                                                     price FLOAT,
@@ -66,25 +92,12 @@ class SqlWrite:
                                                     seller INT
                                                     );''')
 
-    def prepare_data(self):
-        """
-        make pandas dataframes from the given csv files.
-        :return: the 3 pandas dataframes
-        """
-        guitars = pd.DataFrame(pd.read_csv(self.guitar_file))
-        sellers = pd.DataFrame(pd.read_csv(self.sellers_file))
-        shipping = pd.DataFrame(pd.read_csv(self.shipping_file))
-        return guitars, sellers, shipping
-
-    def enter_to_database(self):
+    def enter_to_sellers(self):
         """
         insert to the sql tables the data from the csv files. (with the dataframes of 'prepare_data')
         """
-        guitars, sellers, shipping = self.prepare_data()
-
+        sellers = pd.DataFrame(pd.read_csv(self.sellers_file))
         connection = self.connect()
-
-        # sellers table
         with connection.cursor() as cursor:
             cursor.execute('USE guitars;')
             for i, row in sellers.iterrows():
@@ -106,7 +119,13 @@ class SqlWrite:
                 VALUES """ + str(tuple(row)) + ";")
             connection.commit()
 
-        # shipping table
+    def enter_to_shipping(self):
+        """
+
+        :return:
+        """
+        shipping = pd.DataFrame(pd.read_csv(self.shipping_file))
+        connection = self.connect()
         with connection.cursor() as cursor:
             cursor.execute('USE guitars;')
             for i, row in shipping.iterrows():
@@ -125,7 +144,13 @@ class SqlWrite:
                 VALUES """ + str(tuple(row)) + ";")
             connection.commit()
 
-        # guitars table
+    def enter_to_guitars(self):
+        """
+
+        :return:
+        """
+        guitars = pd.DataFrame(pd.read_csv(self.guitar_file))
+        connection = self.connect()
         with connection.cursor() as cursor:
             cursor.execute('USE guitars;')
             for i, row in guitars.iterrows():

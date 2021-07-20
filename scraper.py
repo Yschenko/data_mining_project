@@ -239,5 +239,3 @@ def main(arg):
 
 if __name__ == '__main__':
     main(argv)
-
-# <div class="selling_info b-space2"><h2 id="selling_title fl"><span class="sell_ttl"><a href="http://www.ebay.com/sch/zoundhouse/m.html?_nkw=&amp;_armrs=1&amp;_ipg=&amp;_from=" _sp="p2545226.m2533.l4721" title="Items for sale">Items for sale</a></span><span class="sell_count">(<a href="http://www.ebay.com/sch/zoundhouse/m.html?_nkw=&amp;_armrs=1&amp;_ipg=&amp;_from=" _sp="p2545226.m2533.l4587" title="Items for sale">42403</a>)</span></h2><div class="selling_links fr"><a href="http://www.ebay.com/sch/zoundhouse/m.html?_nkw=&amp;_armrs=1&amp;_ipg=&amp;_from=" class="see_all_items" _sp="p2545226.m2533.l4586" title="Items for sale">See all items</a></div></div>

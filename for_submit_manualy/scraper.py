@@ -77,20 +77,7 @@ class Scraper:
             # call 'write_to_csv_guitar'
             self.write_to_csv_guitar(data_for_url)
 
-    def write_csv(self, data, path, mode='a', encoding="utf-8"):
-        """
-
-        :param data:
-        :param path:
-        :param mode:
-        :param encoding:
-        :return:
-        """
-        with open(path, mode, encoding=encoding) as csv_file:
-            csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(data)
-
-    def get_sellers_data(self, url):
+    def write_to_sellers_csv(self, url):
         """
         get url from 'write_to_csv_guitar' and collect the data of the seller. return the seller's data as list to
         'write_to_csv_guitar'
@@ -103,17 +90,14 @@ class Scraper:
         positive_feedback = soup.find('div', class_='perctg').text.strip('\n\t % positive feedback')
         member_since = soup.find('div', id='member_info', class_='mem_info').find('span', class_='info').text
         location = soup.find('div', id='member_info', class_='mem_info').find('span', class_='mem_loc').text
-        if soup.find('div', class_='selling_info b-space2'):
-            items_for_sell = soup.find('div', class_='selling_info b-space2').text
-            items_for_sell = items_for_sell[items_for_sell.find('(')+1:items_for_sell.find(')')]
-        else:
-            items_for_sell = None
+        items_for_sell = soup.find('div', class_='selling_info b-space2').text
+        items_for_sell = items_for_sell[items_for_sell.find('(')+1:items_for_sell.find(')')]
         # make a list from all data
         row_to_csv = [name, positive_feedback, member_since, location, items_for_sell]
 
         return row_to_csv  # return to 'write_to_csv_guitar'
 
-    def get_shipping_data(self, soup):
+    def write_to_shipping_csv(self, soup):
         """
         get prepared soup from 'write_to_csv_guitar' and return list of shipping details.
         :param soup: prepared soup to scan
@@ -134,29 +118,6 @@ class Scraper:
 
         return row_to_csv
 
-    def get_guitars_data(self, soup):
-        """
-
-        :param soup:
-        :return:
-        """
-        # the data to collect
-        id = soup.find('div', class_='u-flL iti-act-num itm-num-txt')
-        if id:
-            id = id.text
-        title = soup.find('h1', class_='it-ttl', id="itemTitle")
-        if title:
-            title = title.text.strip('Details about   ')
-        price = soup.find('span', id="convbinPrice")
-        if price:
-            price = price.text.lstrip('ILS ').rstrip('(including shipping)')
-        # find data from text of details.
-        details = soup.find('div', class_='section').text.replace('\n', '').replace('\t', '')
-        brand = self.find_details(details, 'Brand')
-        string_configuration = self.find_details(details, 'String Configuration')
-        model_year = self.find_details(details, 'Model Year')
-        return [id, title, price, brand, string_configuration, model_year]
-
     def write_to_csv_guitar(self, urls):
         """
         gets urls of guitars. write the data into the csv file.
@@ -167,24 +128,50 @@ class Scraper:
         # collect data for guitars
         for row in urls:
             soup = self.make_soup(row.a.get('href'))
-            row_to_csv = self.get_guitars_data(soup)
+            # the data to collect
+            id = soup.find('div', class_='u-flL iti-act-num itm-num-txt')
+            if id:
+                id = id.text
+            title = soup.find('h1', class_='it-ttl', id="itemTitle")
+            if title:
+                title = title.text.strip('Details about   ')
+            price = soup.find('span', id="convbinPrice")
+            if price:
+                price = price.text.lstrip('ILS ').rstrip('(including shipping)')
+            # find data from text of details.
+            details = soup.find('div', class_='section').text.replace('\n', '').replace('\t', '')
+            brand = self.find_details(details, 'Brand')
+            string_configuration = self.find_details(details, 'String Configuration')
+            model_year = self.find_details(details, 'Model Year')
+
             # data of shipping to its own file
-            shipping = self.get_shipping_data(soup)
+            shipping = self.write_to_shipping_csv(soup)
             if shipping not in shipping_details:  # check if the row already exists
-                self.write_csv(shipping, self._csv_path['SHIPPING_CSV'])
+                with open(self._csv_path['SHIPPING_CSV'], 'a', encoding="utf-8") as csv_file:
+                    csv_writer = csv.writer(csv_file)
+                    csv_writer.writerow(shipping)
                 shipping_details.append(shipping)
             shipping_num = shipping_details.index(shipping) + 1
+
             # sellers file
             if self.args.store_data_seller and soup.find('div', class_='mbg vi-VR-margBtm3'):  # case of store sellers data
                 seller_page = soup.find('div', class_='mbg vi-VR-margBtm3').a.get('href')
-                seller = self.get_sellers_data(seller_page)
+                seller = self.write_to_sellers_csv(seller_page)
                 if seller not in sellers:
-                    self.write_csv(sellers, self._csv_path['SELLERS_CSV'])
+                    with open(self._csv_path['SELLERS_CSV'], 'a', encoding="utf-8") as csv_file:
+                        csv_writer = csv.writer(csv_file)
+                        csv_writer.writerow(seller)
                     sellers.append(seller)
                 seller_num = sellers.index(seller) + 1
+
             # guitars file
-                row_to_csv.append([shipping_num, seller_num])
-            self.write_csv(row_to_csv, self._csv_path['GUITARS_CSV'])
+                row_to_csv = [id, title, price, brand, string_configuration, model_year, shipping_num, seller_num]
+            elif not self.args.store_data_seller or not self.args.store_no_data_seller:  # store without sellers data
+                row_to_csv = [id, title, price, brand, string_configuration, model_year]
+
+            with open(self._csv_path['GUITARS_CSV'], 'a', encoding="utf-8") as csv_file:
+                csv_writer = csv.writer(csv_file)
+                csv_writer.writerow(row_to_csv)
 
     def checks(self):
         """
@@ -240,4 +227,3 @@ def main(arg):
 if __name__ == '__main__':
     main(argv)
 
-# <div class="selling_info b-space2"><h2 id="selling_title fl"><span class="sell_ttl"><a href="http://www.ebay.com/sch/zoundhouse/m.html?_nkw=&amp;_armrs=1&amp;_ipg=&amp;_from=" _sp="p2545226.m2533.l4721" title="Items for sale">Items for sale</a></span><span class="sell_count">(<a href="http://www.ebay.com/sch/zoundhouse/m.html?_nkw=&amp;_armrs=1&amp;_ipg=&amp;_from=" _sp="p2545226.m2533.l4587" title="Items for sale">42403</a>)</span></h2><div class="selling_links fr"><a href="http://www.ebay.com/sch/zoundhouse/m.html?_nkw=&amp;_armrs=1&amp;_ipg=&amp;_from=" class="see_all_items" _sp="p2545226.m2533.l4586" title="Items for sale">See all items</a></div></div>

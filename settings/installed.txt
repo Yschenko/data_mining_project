@@ -1,0 +1,1 @@
+mobi.hsz.idea.gitignore

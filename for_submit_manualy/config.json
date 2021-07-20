@@ -1,0 +1,38 @@
+{
+  "URL_PAGE": "https://il.ebay.com/b/Electric-Guitars/33034/bn_2312182",
+  "NUM_PAGES": 30,
+  "CSV_PATH": {
+    "GUITARS_CSV": "ebay_guitars_scrape.csv",
+    "SELLERS_CSV": "ebay_sellers_guitars_scrape.csv",
+	"SHIPPING_CSV": "ebay_shipping.csv"
+  },
+  "COLUMNS_DICT": {
+    "GUITARS": {
+      "ID": "",
+      "TITLE": "",
+      "PRICE": "",
+      "BRAND": "",
+      "STRING_CONGIGURATION": "",
+      "MODEL_YEAR": "",
+	  "SHIPPING_NUM": "",
+      "SELLER_NUM": ""
+    },
+    "SELLERS": {
+      "NAME": "",
+      "POSITIVE_FEEDBACK": "",
+      "MEMBER_SINCE": "",
+      "LOCATION": "",
+      "ITEMS_FOR_SELL": ""
+    },
+	"SHIPPING": {
+		"COAST": "",
+		"ITEM_LOCATION": "",
+		"SHIPPING_TO": "",
+		"DELIVERY": ""
+	}
+  },
+  "SQL_USER": {
+	  "USER_NAME": "root",
+	  "PASSWORD": "Ysch[5752]"
+  }
+}

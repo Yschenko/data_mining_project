@@ -34,5 +34,22 @@
   "SQL_USER": {
 	  "USER_NAME": "root",
 	  "PASSWORD": "Ysch[5752]"
+  },
+  "DATABASE": {
+	  "CREATION": "CREATE DATABASE IF NOT EXISTS guitars;",
+	  "USE": "USE guitars;"
+  },
+  "TABLES": {
+	  "SELLERS": {
+		  "CREATION": "CREATE TABLE IF NOT EXISTS sellers (seller_id INT PRIMARY KEY, name TEXT, positive_feedback FLOAT, member_since TEXT, location TEXT, items_for_sell INT);",
+		  "INSERTION": "INSERT INTO sellers (seller_id, name, positive_feedback, member_since, location, items_for_sell) VALUES "},
+	  "SHIPPING": {
+		  "CREATION": "CREATE TABLE IF NOT EXISTS shipping (shipping_id INT PRIMARY KEY, cost FLOAT, item_location TEXT, shipping_to TEXT, delivery TEXT);",
+		  "INSERTION": "INSERT INTO shipping (shipping_id, cost, item_location, shipping_to, delivery) VALUES "
+	  },
+	  "GUITARS": {
+		  "CREATION": "CREATE TABLE IF NOT EXISTS guitars (guitar_id INT AUTO_INCREMENT PRIMARY KEY, ebay_id CHAR(20), title TEXT, price FLOAT, brand TEXT, string_configuration INT, model_year INT, shipping INT, seller INT);",
+		  "INSERTION": "INSERT INTO guitars (ebay_id, title, price, brand, string_configuration, model_year, shipping, seller) VALUES "
+	  }
   }
 }

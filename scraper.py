@@ -175,19 +175,25 @@ class Scraper:
             # data of shipping to its own file
             shipping = self.get_shipping_data(soup)
             if shipping not in shipping_details:  # check if the row already exists
-                self.write_csv(shipping, self._csv_path['SHIPPING_CSV'])
                 shipping_details.append(shipping)
-            shipping_num = shipping_details.index(shipping) + 1
+                shipping_num = shipping_details.index(shipping) + 1
+                shipping = [shipping_num] + shipping
+                self.write_csv(shipping, self._csv_path['SHIPPING_CSV'])
+            else:
+                shipping_num = shipping_details.index(shipping) + 1
             # sellers file
             if self.args.store_data_seller and soup.find('div', class_='mbg vi-VR-margBtm3'):  # case of store sellers
                 seller_page = soup.find('div', class_='mbg vi-VR-margBtm3').a.get('href')
                 seller = self.get_sellers_data(seller_page)
                 if seller not in sellers:
-                    self.write_csv(sellers, self._csv_path['SELLERS_CSV'])
                     sellers.append(seller)
-                seller_num = sellers.index(seller) + 1
+                    seller_num = sellers.index(seller) + 1
+                    seller = [seller_num] + seller
+                    self.write_csv(seller, self._csv_path['SELLERS_CSV'])
+                else:
+                    seller_num = sellers.index(seller) + 1
             # guitars file
-                row_to_csv.append([shipping_num, seller_num])
+                row_to_csv.extend([shipping_num, seller_num])
             self.write_csv(row_to_csv, self._csv_path['GUITARS_CSV'])
 
     def checks(self):
@@ -233,16 +239,16 @@ def main(arg):
         print('directory for csv file in not exist')
     # if constants all parameters are correct.
     else:
-        # scrap.create_csv_files()
-        # scrap.get_urls()  # write to the csv files
+        scrap.create_csv_files()
+        scrap.get_urls()  # write to the csv files
         #  write the sql database
         db = sql_writer.SqlWrite(CONSTS)
-        db.create_database()
-        db.create_sellers_table()
+        db.create_database(CONSTS["DATABASE"]["CREATION"])
+        db.create_table(CONSTS['DATABASE']['USE'], CONSTS['TABLES']['SELLERS']['CREATION'])
         db.enter_to_sellers()
-        db.create_shipping_table()
+        db.create_table(CONSTS['DATABASE']['USE'], CONSTS['TABLES']['SHIPPING']['CREATION'])
         db.enter_to_shipping()
-        db.create_guitars_table()
+        db.create_table(CONSTS['DATABASE']['USE'], CONSTS['TABLES']['GUITARS']['CREATION'])
         db.enter_to_guitars()
 
 

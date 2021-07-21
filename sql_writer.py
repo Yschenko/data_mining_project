@@ -31,68 +31,42 @@ class SqlWrite:
                                      cursorclass=pymysql.cursors.DictCursor)
         return connection
 
-    def create_database(self):
+    @staticmethod
+    def make_dataframe(csv_file):
+        """
+
+        :param csv_file:
+        :return:
+        """
+        df = pd.read_csv(csv_file)
+
+        return df
+
+    def create_database(self, sql_string):
         """
         create guitars database.
         """
         connection = self.connect()
         with connection.cursor() as cursor:
-            cursor.execute('''CREATE DATABASE IF NOT EXISTS guitars;''')
+            cursor.execute(sql_string)
 
-    def create_sellers_table(self):
+    def create_table(self, use_database, sql_make_table):
         """
-        create the sellers table.
+
+        :param use_database:
+        :param sql_make_table:
+        :return:
         """
         connection = self.connect()
         with connection.cursor() as cursor:
-            cursor.execute('USE guitars;')
-            cursor.execute('''CREATE TABLE IF NOT EXISTS sellers (
-                              seller_id INT AUTO_INCREMENT PRIMARY KEY,
-                              name TEXT,
-                              positive_feedback FLOAT,
-                              member_since TEXT,
-                              location TEXT,
-                              items_for_sell INT
-                              );''')
-
-    def create_shipping_table(self):
-        """
-        create the shipping table
-        """
-        connection = self.connect()
-        with connection.cursor() as cursor:
-            cursor.execute('USE guitars;')
-            cursor.execute('''CREATE TABLE IF NOT EXISTS shipping (
-                                          shipping_id INT AUTO_INCREMENT PRIMARY KEY,
-                                          cost FLOAT,
-                                          item_location TEXT,
-                                          shipping_to TEXT,
-                                          delivery TEXT
-                                          );''')
-
-    def create_guitars_table(self):
-        """
-        create the guitars table.
-        """
-        connection = self.connect()
-        with connection.cursor() as cursor:
-            cursor.execute('USE guitars;')
-            cursor.execute('''CREATE TABLE IF NOT EXISTS guitars (guitar_id INT AUTO_INCREMENT PRIMARY KEY,
-                                                    ebay_id CHAR(20),
-                                                    title TEXT,
-                                                    price FLOAT,
-                                                    brand TEXT,
-                                                    string_configuration INT,
-                                                    model_year INT,
-                                                    shipping INT,
-                                                    seller INT
-                                                    );''')
+            cursor.execute(use_database)
+            cursor.execute(sql_make_table)
 
     def enter_to_sellers(self):
         """
         insert to the sellers table the data from the csv files.
         """
-        sellers = pd.read_csv(self.sellers_file)
+        sellers = self.make_dataframe(self.sellers_file)
         connection = self.connect()
         with connection.cursor() as cursor:
             cursor.execute('USE guitars;')
@@ -119,7 +93,7 @@ class SqlWrite:
         """
         insert to the shipping table the data from the csv files.
         """
-        shipping = pd.DataFrame(pd.read_csv(self.shipping_file))
+        shipping = self.make_dataframe(self.shipping_file)
         connection = self.connect()
         with connection.cursor() as cursor:
             cursor.execute('USE guitars;')
@@ -143,7 +117,7 @@ class SqlWrite:
         """
         insert to the guitars table the data from the csv files.
         """
-        guitars = pd.DataFrame(pd.read_csv(self.guitar_file))
+        guitars = self.make_dataframe(self.guitar_file)
         connection = self.connect()
         with connection.cursor() as cursor:
             cursor.execute('USE guitars;')

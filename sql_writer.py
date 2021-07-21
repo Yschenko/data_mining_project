@@ -2,12 +2,14 @@ import pandas as pd
 import pymysql.cursors
 import json
 
-consts = json.load(open('config.json', 'r'))
+CONSTS = json.load(open('config.json', 'r'))
 
 
 class SqlWrite:
     """
     This class create sql database for scraper.py and insert to it all data that collected r=from the web pages.
+    There is 1 method 'create_database'.
+    3 methods to create the tables and 3 to insert the data to them.
     """
     def __init__(self, const):
         """
@@ -17,31 +19,29 @@ class SqlWrite:
         self.sellers_file = const['CSV_PATH']['SELLERS_CSV']
         self.shipping_file = const['CSV_PATH']['SHIPPING_CSV']
 
-    def connect(self):
+    @staticmethod
+    def connect():
         """
         establish connection to mysql server.
         :return: the connection to mysql.
         """
         connection = pymysql.connect(host='localhost',
-                                     user=consts['SQL_USER']['USER_NAME'],
-                                     password=consts['SQL_USER']['PASSWORD'],
+                                     user=CONSTS['SQL_USER']['USER_NAME'],
+                                     password=CONSTS['SQL_USER']['PASSWORD'],
                                      cursorclass=pymysql.cursors.DictCursor)
         return connection
 
     def create_database(self):
         """
-        create guitars database with 3 tables in the database: guitars, sellers and shipping.
+        create guitars database.
         """
         connection = self.connect()
         with connection.cursor() as cursor:
             cursor.execute('''CREATE DATABASE IF NOT EXISTS guitars;''')
 
-            cursor.execute('USE guitars;')
-
     def create_sellers_table(self):
         """
-
-        :return:
+        create the sellers table.
         """
         connection = self.connect()
         with connection.cursor() as cursor:
@@ -57,16 +57,14 @@ class SqlWrite:
 
     def create_shipping_table(self):
         """
-
-        :param self:
-        :return:
+        create the shipping table
         """
         connection = self.connect()
         with connection.cursor() as cursor:
             cursor.execute('USE guitars;')
             cursor.execute('''CREATE TABLE IF NOT EXISTS shipping (
                                           shipping_id INT AUTO_INCREMENT PRIMARY KEY,
-                                          coast FLOAT,
+                                          cost FLOAT,
                                           item_location TEXT,
                                           shipping_to TEXT,
                                           delivery TEXT
@@ -74,9 +72,7 @@ class SqlWrite:
 
     def create_guitars_table(self):
         """
-
-        :param self:
-        :return:
+        create the guitars table.
         """
         connection = self.connect()
         with connection.cursor() as cursor:
@@ -94,9 +90,9 @@ class SqlWrite:
 
     def enter_to_sellers(self):
         """
-        insert to the sql tables the data from the csv files. (with the dataframes of 'prepare_data')
+        insert to the sellers table the data from the csv files.
         """
-        sellers = pd.DataFrame(pd.read_csv(self.sellers_file))
+        sellers = pd.read_csv(self.sellers_file)
         connection = self.connect()
         with connection.cursor() as cursor:
             cursor.execute('USE guitars;')
@@ -121,18 +117,17 @@ class SqlWrite:
 
     def enter_to_shipping(self):
         """
-
-        :return:
+        insert to the shipping table the data from the csv files.
         """
         shipping = pd.DataFrame(pd.read_csv(self.shipping_file))
         connection = self.connect()
         with connection.cursor() as cursor:
             cursor.execute('USE guitars;')
             for i, row in shipping.iterrows():
-                if isinstance(row['COAST'], str):
-                    row['COAST'] = float(row['COAST'].replace(',', ''))
-                if str(row['COAST']) == 'nan':
-                    row['COAST'] = -1.0
+                if isinstance(row['COST'], str):
+                    row['COST'] = float(row['COST'].replace(',', ''))
+                if str(row['COST']) == 'nan':
+                    row['COST'] = -1.0
                 if str(row['ITEM_LOCATION']) == 'nan':
                     row['ITEM_LOCATION'] = 'NULL'
                 if str(row['SHIPPING_TO']) == 'nan':
@@ -140,14 +135,13 @@ class SqlWrite:
                 if str(row['DELIVERY']) == 'nan':
                     row['DELIVERY'] = 'NULL'
                 cursor.execute("""INSERT INTO shipping
-                (coast, item_location, shipping_to, delivery)
+                (cost, item_location, shipping_to, delivery)
                 VALUES """ + str(tuple(row)) + ";")
             connection.commit()
 
     def enter_to_guitars(self):
         """
-
-        :return:
+        insert to the guitars table the data from the csv files.
         """
         guitars = pd.DataFrame(pd.read_csv(self.guitar_file))
         connection = self.connect()

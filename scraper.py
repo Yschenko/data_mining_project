@@ -6,7 +6,7 @@ from sys import argv
 import argparse
 import sql_writer
 
-consts = json.load(open('config.json', 'r'))
+CONSTS = json.load(open('config.json', 'r'))
 
 # This code scrape internet page, search for relevant data and write tha data to a scv file.
 # There is option to print the data to the screen instead write it to csv file.
@@ -41,7 +41,8 @@ class Scraper:
                 # create the columns titles
                 csv_writer.writerow([column for column in self._columns_dict[l].keys()])
 
-    def make_soup(self, url):
+    @staticmethod
+    def make_soup(url):
         """
         with requests and BeautifulSoup, create the html data to scan.
         :param url: url to make a soup
@@ -50,7 +51,8 @@ class Scraper:
         source = requests.get(url).text
         return BeautifulSoup(source, 'lxml')
 
-    def find_details(self, details, string):
+    @staticmethod
+    def find_details(details, string):
         """
         find data from the detailed page of guitar. the data appears as string (text), so strings methods are in use.
         :param details: the string to scan
@@ -75,9 +77,10 @@ class Scraper:
             # collect the data from the page
             data_for_url = (soup.find_all('div', class_='s-item__wrapper clearfix'))
             # call 'write_to_csv_guitar'
-            self.write_to_csv_guitar(data_for_url)
+            self.write_to_csvs(data_for_url)
 
-    def write_csv(self, data, path, mode='a', encoding="utf-8"):
+    @staticmethod
+    def write_csv(data, path, mode='a', encoding="utf-8"):
         """
 
         :param data:
@@ -113,16 +116,17 @@ class Scraper:
 
         return row_to_csv  # return to 'write_to_csv_guitar'
 
-    def get_shipping_data(self, soup):
+    @staticmethod
+    def get_shipping_data(soup):
         """
         get prepared soup from 'write_to_csv_guitar' and return list of shipping details.
         :param soup: prepared soup to scan
         """
         if (soup.find('div', class_="u-flL sh-col") and
                 soup.find('div', class_="u-flL sh-col").find('span', id="convetedPriceId")):
-            coast = soup.find('div', class_="u-flL sh-col").find('span', id="convetedPriceId").text.strip('ILS ')
+            cost = soup.find('div', class_="u-flL sh-col").find('span', id="convetedPriceId").text.strip('ILS ')
         else:
-            coast = None
+            cost = None
         item_location = soup.find('span', itemprop="availableAtOrFrom").text if\
             soup.find('span', itemprop="availableAtOrFrom") else None
         shipping_to = soup.find('span', itemprop="areaServed").text if\
@@ -130,7 +134,7 @@ class Scraper:
         shipping_to = shipping_to[:shipping_to.find("|")].strip() if shipping_to else None
         delivery = soup.find('span', "vi-acc-del-range").b.text if soup.find('span', "vi-acc-del-range") else None
 
-        row_to_csv = [coast, item_location, shipping_to, delivery]
+        row_to_csv = [cost, item_location, shipping_to, delivery]
 
         return row_to_csv
 
@@ -141,9 +145,9 @@ class Scraper:
         :return:
         """
         # the data to collect
-        id = soup.find('div', class_='u-flL iti-act-num itm-num-txt')
-        if id:
-            id = id.text
+        guitar_id = soup.find('div', class_='u-flL iti-act-num itm-num-txt')
+        if guitar_id:
+            guitar_id = guitar_id.text
         title = soup.find('h1', class_='it-ttl', id="itemTitle")
         if title:
             title = title.text.strip('Details about   ')
@@ -155,9 +159,9 @@ class Scraper:
         brand = self.find_details(details, 'Brand')
         string_configuration = self.find_details(details, 'String Configuration')
         model_year = self.find_details(details, 'Model Year')
-        return [id, title, price, brand, string_configuration, model_year]
+        return [guitar_id, title, price, brand, string_configuration, model_year]
 
-    def write_to_csv_guitar(self, urls):
+    def write_to_csvs(self, urls):
         """
         gets urls of guitars. write the data into the csv file.
         """
@@ -175,7 +179,7 @@ class Scraper:
                 shipping_details.append(shipping)
             shipping_num = shipping_details.index(shipping) + 1
             # sellers file
-            if self.args.store_data_seller and soup.find('div', class_='mbg vi-VR-margBtm3'):  # case of store sellers data
+            if self.args.store_data_seller and soup.find('div', class_='mbg vi-VR-margBtm3'):  # case of store sellers
                 seller_page = soup.find('div', class_='mbg vi-VR-margBtm3').a.get('href')
                 seller = self.get_sellers_data(seller_page)
                 if seller not in sellers:
@@ -219,7 +223,7 @@ def main(arg):
     args = get_args(arg[1:])
 
     # create Scraper
-    scrap = Scraper(consts, args)
+    scrap = Scraper(CONSTS, args)
     # test if all given parameters are correct and available
     try:
         scrap.checks()
@@ -229,12 +233,17 @@ def main(arg):
         print('directory for csv file in not exist')
     # if constants all parameters are correct.
     else:
-        scrap.create_csv_files()
-        scrap.get_urls()  # write to the csv files
+        # scrap.create_csv_files()
+        # scrap.get_urls()  # write to the csv files
         #  write the sql database
-        db = sql_writer.SqlWrite(consts)
+        db = sql_writer.SqlWrite(CONSTS)
         db.create_database()
-        db.enter_to_database()
+        db.create_sellers_table()
+        db.enter_to_sellers()
+        db.create_shipping_table()
+        db.enter_to_shipping()
+        db.create_guitars_table()
+        db.enter_to_guitars()
 
 
 if __name__ == '__main__':

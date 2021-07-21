@@ -25,7 +25,7 @@
       "ITEMS_FOR_SELL": ""
     },
 	"SHIPPING": {
-		"COAST": "",
+		"COST": "",
 		"ITEM_LOCATION": "",
 		"SHIPPING_TO": "",
 		"DELIVERY": ""

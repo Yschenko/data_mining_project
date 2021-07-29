@@ -31,6 +31,10 @@ the config file includes the following information:
  - dictionary: "CSV_PATH" with 3 paths to 3 csv file that the program will write to them.
  - dictionary: "COLUMNS_DICT" contains 3 inner dictionaries with the columns names of the 3 csv files mentioned above.
  - user information for mysql, including 'username' and 'pwd' **change them to your own before use**.
+ 
+ ## API
+ 
+ API part, enter the artist ID as a parameter to the function, the function will return pandas data frame with information about the artist.
 
 ## usage - command line
 
